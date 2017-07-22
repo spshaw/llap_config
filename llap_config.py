@@ -1,50 +1,40 @@
 import math
 
 class AmbariSpecs:
-    def getAmbariSpecs(self):
-        # gather Ambari connection information
-        ambari_domain = input("Ambari Domain: ")
-        ambari_port = input("Ambari Port/(8080): ")
-        ambari_user_id = input("Ambari Username?/(admin): ")
-        ambari_pw = input("Ambari Password?/(admin): ")
-        rm_domain = input("Resource Manager Domain: ")
-        rm_port = input("Resource Manager Port/(8088): ")
-        cluster_name = input("Cluster Name? ")
-        return AmbariSpecs(ambari_domain, ambari_port, ambari_user_id, ambari_pw, rm_domain, rm_port, cluster_name);
+    def __init__(self): #When someone calls AS = AmbariSpecs() This will run
+        self.ambari_domain = input("Ambari Domain: ")
+        self.ambari_port = input("Ambari Port/(8080): ")
+        self.ambari_user_id = input("Ambari Username?/(admin): ")
+        self.ambari_pw = input("Ambari Password?/(admin): ")
+        self.rm_domain = input("Resource Manager Domain: ")
+        self.rm_port = input("Resource Manager Port/(8088): ")
+        self.cluster_name = input("Cluster Name? ")
+        #return AmbariSpecs(ambari_domain, ambari_port, ambari_user_id, ambari_pw, rm_domain, rm_port, cluster_name);
 
+def getLLAPHeapSize(container_size, cores, nodes):
+    total_cores = cores * nodes
+    llap_heap_size = math.ceil((container_size * total_cores * .95))
+    heap_check = llap_heap_size / cores
+    if heap_check < 4:
+        print("Heap size divided by cores must be greater than 4 GB")
+    else:
+        return llap_heap_size
 
-class LLAPHeapSize:
-    def getLLAPHeapSize(self, container_size, cores, nodes):
-        global llap_heap_size;
-        total_cores = cores * nodes
-        llap_heap_size = math.ceil((container_size * total_cores * .95))
-        heap_check = llap_heap_size / cores
-        if heap_check < 4:
-            print("Heap size divided by cores must be greater than 4 GB")
-        else:
-            return llap_heap_size
+def getMemoryPerDaemonPerNode(nodes, queries, ram):
+    total_available_memory = nodes * ram
+    total_concurrent_memory = queries * 2
+    memory_per_deamon_per_node = (total_available_memory - total_concurrent_memory)/nodes
+    return memory_per_deamon_per_node
 
-
-class MemoryPerDaemonPerNode:
-    def getMemoryPerDaemonPerNode(self, nodes, queries, ram):
-        total_available_memory = nodes * ram
-        global total_concurrent_memory;
-        total_concurrent_memory = queries * 2
-        global memory_per_deamon_per_node;
-        memory_per_deamon_per_node = (total_available_memory - total_concurrent_memory)/nodes
-        return memory_per_deamon_per_node, total_concurrent_memory
-
-class CacheSize:
-    def getCacheSize(self, total_concurrent_memory, headroom, container_size):
-        global cache_size;
-        cache_size = memory_per_deamon_per_node - headroom - llap_heap_size
-        return cache_size
+def getCacheSize(memory_per_deamon_per_node, headroom, llap_heap_size):
+    cache_size = memory_per_deamon_per_node - headroom - llap_heap_size
+    return cache_size
 
 class main:
-    ambari = input("Do you wish to have the script automatically show current configs? y/n:")
+    ambari = input("Do you wish to have the script automatically show current configs? y/n:").lower()
     if ambari == 'y':
         ambariconfig = AmbariSpecs()
-        ambariconfig.getAmbariSpecs()
+        #Code goes here to access data from Ambari Specs
     elif ambari == 'n':
         container_size = int(input("What is the value of hive.tez.container.size/(GB)?: "))
         cores = int(input("Number of cores per node?: "))
@@ -54,19 +44,14 @@ class main:
         headroom = int(input("Headroom?/(GB): "))
     else:
         print("Enter either y/n")
+    #With python Methods don't need to have associated objects.
+    #Also, Global Variables in pyton can be messy so I just saved the outcomes needed for other functions
+    # Some of the variable neames didn't match what was needed in the headers so I defaulted to the headers
+    heapsize = getLLAPHeapSize(container_size, cores, nodes)
+    print("LLAP Heap Size = " + str(heapsize) + "GB")
 
-    heapsize = LLAPHeapSize()
-    heapsize.getLLAPHeapSize(container_size, cores, nodes)
-    print("LLAP Heap Size = " + str(llap_heap_size) + "GB")
+    nodememory = getMemoryPerDaemonPerNode(nodes, queries, ram)
+    print("Memory Per Deamon Per Node = " + str(nodememory) + "GB")
 
-    nodememory = MemoryPerDaemonPerNode()
-    nodememory.getMemoryPerDaemonPerNode(nodes, queries, ram)
-    print("Memory Per Deamon Per Node = " + str(memory_per_deamon_per_node) + "GB")
-
-    cachesize = CacheSize()
-    cachesize.getCacheSize(total_concurrent_memory, headroom, container_size)
-    print ("Total Cache Size = " + str(cache_size) + "GB")
-
-
-
-
+    cachesize = getCacheSize(nodememory, headroom, heapsize)
+    print ("Total Cache Size = " + str(cachesize) + "GB")
