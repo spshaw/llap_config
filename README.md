@@ -9,3 +9,5 @@ The script needs the following information:
         Number of nodes dedicated to LLAP
         Number of concurrent queries.
         Headroom in GB (This should be around 6 GB)
+
+This script allows you to determine memory settings prior to enabling LLAP or to predict what memory changes will occur based on inputs.
