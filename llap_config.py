@@ -1,5 +1,6 @@
 import math
 
+
 class AmbariSpecs:
     def __init__(self): #When someone calls AS = AmbariSpecs() This will run
         self.ambari_domain = input("Ambari Domain: ")
@@ -11,14 +12,16 @@ class AmbariSpecs:
         self.cluster_name = input("Cluster Name? ")
         #return AmbariSpecs(ambari_domain, ambari_port, ambari_user_id, ambari_pw, rm_domain, rm_port, cluster_name);
 
-def getLLAPHeapSize(container_size, cores, nodes):
-    total_cores = cores * nodes
-    llap_heap_size = math.ceil((container_size * total_cores * .95))
+
+def getLLAPHeapSize(container_size, cores, nodes, num_variable):
+    llap_heap_size = container_size * cores * num_variable
     heap_check = llap_heap_size / cores
     if heap_check < 4:
-        print("Heap size divided by cores must be greater than 4 GB")
+        print("Warning: Heap size divided by cores should be greater than 4 GB")
+        return llap_heap_size
     else:
         return llap_heap_size
+
 
 def getMemoryPerDaemonPerNode(nodes, queries, ram):
     total_available_memory = nodes * ram
@@ -26,9 +29,11 @@ def getMemoryPerDaemonPerNode(nodes, queries, ram):
     memory_per_deamon_per_node = (total_available_memory - total_concurrent_memory)/nodes
     return memory_per_deamon_per_node
 
+
 def getCacheSize(memory_per_deamon_per_node, headroom, llap_heap_size):
-    cache_size = memory_per_deamon_per_node - headroom - llap_heap_size
+    cache_size = round(llap_heap_size - memory_per_deamon_per_node - headroom, 0)
     return cache_size
+
 
 class main:
     ambari = input("Do you wish to have the script automatically show current configs? y/n:").lower()
@@ -47,7 +52,13 @@ class main:
     #With python Methods don't need to have associated objects.
     #Also, Global Variables in pyton can be messy so I just saved the outcomes needed for other functions
     # Some of the variable neames didn't match what was needed in the headers so I defaulted to the headers
-    heapsize = getLLAPHeapSize(container_size, cores, nodes)
+
+    if ram < 128:
+        num_variable = .8
+    else:
+        num_variable = .95
+
+    heapsize = getLLAPHeapSize(container_size, cores, nodes, num_variable)
     print("LLAP Heap Size = " + str(heapsize) + "GB")
 
     nodememory = getMemoryPerDaemonPerNode(nodes, queries, ram)
