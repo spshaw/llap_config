@@ -1,8 +1,10 @@
+#!/usr/bin/env python3
+
 import math
 
 
 class AmbariSpecs:
-    def __init__(self): #When someone calls AS = AmbariSpecs() This will run
+    def __init__(self):  # When someone calls AS = AmbariSpecs() This will run
         self.ambari_domain = input("Ambari Domain: ")
         self.ambari_port = input("Ambari Port/(8080): ")
         self.ambari_user_id = input("Ambari Username?/(admin): ")
@@ -10,7 +12,8 @@ class AmbariSpecs:
         self.rm_domain = input("Resource Manager Domain: ")
         self.rm_port = input("Resource Manager Port/(8088): ")
         self.cluster_name = input("Cluster Name? ")
-        #return AmbariSpecs(ambari_domain, ambari_port, ambari_user_id, ambari_pw, rm_domain, rm_port, cluster_name);
+        # return AmbariSpecs(ambari_domain, ambari_port, ambari_user_id,
+        #                    ambari_pw, rm_domain, rm_port, cluster_name);
 
 
 def getLLAPHeapSize(container_size, cores, nodes, num_variable):
@@ -39,7 +42,7 @@ class main:
     ambari = input("Do you wish to have the script automatically show current configs? y/n:").lower()
     if ambari == 'y':
         ambariconfig = AmbariSpecs()
-        #Code goes here to access data from Ambari Specs
+        # Code goes here to access data from Ambari Specs
     elif ambari == 'n':
         container_size = int(input("What is the value of hive.tez.container.size/(GB)?: "))
         cores = int(input("Number of cores per node?: "))
@@ -49,9 +52,9 @@ class main:
         headroom = int(input("Headroom?/(GB): "))
     else:
         print("Enter either y/n")
-    #With python Methods don't need to have associated objects.
-    #Also, Global Variables in pyton can be messy so I just saved the outcomes needed for other functions
-    # Some of the variable neames didn't match what was needed in the headers so I defaulted to the headers
+    # With python Methods don't need to have associated objects.
+    #   Also, Global Variables in pyton can be messy so I just saved the outcomes needed for other functions
+    #   Some of the variable neames didn't match what was needed in the headers so I defaulted to the headers
 
     if ram < 128:
         num_variable = .8
